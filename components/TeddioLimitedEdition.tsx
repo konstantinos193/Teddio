@@ -1,4 +1,5 @@
-import Image from "next/image"
+"use client"
+
 import ScrollReveal from "./ScrollReveal"
 
 export default function TeddioLimitedEdition() {
@@ -13,16 +14,17 @@ export default function TeddioLimitedEdition() {
           </p>
         </div>
         <div className="w-full md:w-1/2 aspect-square relative">
-          <Image
-            src="https://i.postimg.cc/GhWZkz9p/Pop-Funko-Teddio.gif"
-            alt="Teddio Limited Edition"
-            layout="fill"
-            objectFit="cover"
-            className="rounded-lg"
-          />
+          <video 
+            className="w-full h-full object-cover rounded-lg" 
+            loop 
+            muted 
+            playsInline 
+            autoPlay>
+            <source src="https://ipfs.io/ipfs/bafybeicv72pkkens53grjjomkbfesh3iutt6whwjnhj6uwropczlz376qu" type="video/mp4" />
+            Your browser does not support the video tag.
+          </video>
         </div>
       </div>
     </ScrollReveal>
   )
 }
-

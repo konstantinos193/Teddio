@@ -1,25 +1,23 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Twitter, DiscIcon as Discord } from "lucide-react"
-import dynamic from "next/dynamic"
-import BearFace3D from "@/components/BearFace3D"
-import TeddioLimitedEdition from "@/components/TeddioLimitedEdition"
-import TeddioBrandVideo from "@/components/TeddioBrandVideo"
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Twitter, DiscIcon as Discord } from "lucide-react";
+import dynamic from "next/dynamic";
+import BearFace3D from "@/components/BearFace3D";
+import TeddioLimitedEdition from "@/components/TeddioLimitedEdition";
+import TeddioBrandVideo from "@/components/TeddioBrandVideo";
 
-
-
-const TeddioHero = dynamic(() => import("@/components/TeddioHero"), { ssr: false })
+const TeddioHero = dynamic(() => import("@/components/TeddioHero"), { ssr: false });
 
 export default function Home() {
-  const [isClient, setIsClient] = useState(false)
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    setIsClient(true)
-  }, [])
+    setIsClient(true);
+  }, []);
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
@@ -30,7 +28,7 @@ export default function Home() {
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          style={{ position: "absolute", top: "20%" }} // Positioned above the bear head
+          style={{ position: "absolute", top: "10%" }} // Updated to raise the text higher
         >
           Teddio
         </motion.h1>
@@ -43,9 +41,9 @@ export default function Home() {
       <header className="fixed w-full z-50 bg-black/50 backdrop-blur-md">
         <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/">
-            <img 
-              src="/logo.png" 
-              alt="Teddio Logo" 
+            <img
+              src="/logo.png"
+              alt="Teddio Logo"
               className="h-10 w-auto"
             />
           </Link>
@@ -92,13 +90,13 @@ export default function Home() {
                   </Link>
                 </Button>
               </div>
+
             </div>
             <TeddioLimitedEdition />
-      <TeddioBrandVideo />
+            <TeddioBrandVideo />
           </div>
         </section>
       </main>
-      
 
       {/* Footer */}
       <footer className="bg-gray-900 py-8">
@@ -106,7 +104,6 @@ export default function Home() {
           <p className="text-gray-500">&copy; 2025 Teddio NFT Collection. All rights reserved.</p>
         </div>
       </footer>
-      
     </div>
-  )
+  );
 }
