@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
-export default function PerfectBear() {
+export default function BearFace3D() {
   const mountRef = useRef(null);
 
   useEffect(() => {
@@ -111,5 +111,5 @@ export default function PerfectBear() {
     };
   }, []);
 
-  return <div ref={mountRef} className="fixed inset-0 pointer-events-none" />;
+  return <div ref={mountRef} className="fixed inset-0 pointer-events-none z-0" />;
 }

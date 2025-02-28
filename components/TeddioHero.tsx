@@ -100,11 +100,6 @@ export default function TeddioHero() {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1 }}
       >
-        <img
-          src="https://i.postimg.cc/WzK6h8zH/Untitled-design-44.png"
-          alt="Teddio Bear"
-          className="w-64 h-64 md:w-96 md:h-96 object-contain animate-float"
-        />
       </motion.div>
     </div>
   )

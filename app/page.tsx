@@ -7,6 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Twitter, DiscIcon as Discord } from "lucide-react"
 import dynamic from "next/dynamic"
 import BearFace3D from "@/components/BearFace3D"
+import TeddioLimitedEdition from "@/components/TeddioLimitedEdition"
+import TeddioBrandVideo from "@/components/TeddioBrandVideo"
+
+
 
 const TeddioHero = dynamic(() => import("@/components/TeddioHero"), { ssr: false })
 
@@ -19,9 +23,23 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
+      {/* Teddio Text Above the Bear Head */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+        <motion.h1
+          className="text-6xl md:text-8xl font-extrabold mb-6 text-[#F27125]"
+          initial={{ opacity: 0, y: -50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8 }}
+          style={{ position: "absolute", top: "20%" }} // Positioned above the bear head
+        >
+          Teddio
+        </motion.h1>
+      </div>
+
+      {/* 3D Bear Head */}
       <BearFace3D />
-      {/*<CursorFollowingTeddie />
-      <CustomCursor />*/}
+
+      {/* Header */}
       <header className="fixed w-full z-50 bg-black/50 backdrop-blur-md">
         <nav className="container mx-auto px-6 py-4 flex justify-between items-center">
           <Link href="/">
@@ -40,38 +58,21 @@ export default function Home() {
       </header>
 
       <main>
+        {/* Hero Section */}
         <section className="h-screen relative flex items-center justify-center">
           {isClient && <TeddioHero />}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black z-10" />
           <div className="container mx-auto px-6 text-center relative z-20">
-            <motion.h1
-              className="text-6xl md:text-8xl font-extrabold mb-6 text-[#F27125]"
-              initial={{ opacity: 0, y: -50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-            >
-              Teddio
-            </motion.h1>
-            <motion.p
-              className="text-xl md:text-2xl mb-8"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-            >
-              Exclusive Teddy Bear NFTs on Berachain
-            </motion.p>
             <motion.div
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              <Button className="bg-[#F27125] text-white hover:bg-[#D85500] text-lg px-8 py-3 rounded-full">
-                Coming Soon
-              </Button>
             </motion.div>
           </div>
         </section>
 
+        {/* Community Section */}
         <section className="py-20 bg-black relative overflow-hidden">
           <div className="absolute inset-0 opacity-50">
             <div className="absolute inset-0 bg-gradient-to-r from-[#F27125] to-[#D85500] transform -skew-y-6"></div>
@@ -92,16 +93,20 @@ export default function Home() {
                 </Button>
               </div>
             </div>
+            <TeddioLimitedEdition />
+      <TeddioBrandVideo />
           </div>
         </section>
       </main>
+      
 
+      {/* Footer */}
       <footer className="bg-gray-900 py-8">
         <div className="container mx-auto px-6 text-center">
           <p className="text-gray-500">&copy; 2025 Teddio NFT Collection. All rights reserved.</p>
         </div>
       </footer>
+      
     </div>
   )
 }
-
