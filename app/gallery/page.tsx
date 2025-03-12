@@ -455,21 +455,53 @@ export default function Gallery() {
     return shuffled;
   }, []);
 
-  // Update the useEffect that handles visibleNFTs to include shuffling
+  // Fix the scroll loading issue when filters are applied
   useEffect(() => {
-    // Always show the first batch of filtered NFTs when search term changes
-    setVisibleCount(50);
+    const handleScroll = () => {
+      // Check if we're near the bottom of the page
+      const nearBottom = 
+        window.innerHeight + document.documentElement.scrollTop >=
+        document.documentElement.offsetHeight - 200;
+      
+      // Check if we should load more NFTs
+      if (nearBottom && !loading && visibleCount < filteredNFTs.length) {
+        console.log('Reached bottom, loading more NFTs...', {
+          currentVisible: visibleCount,
+          totalFiltered: filteredNFTs.length
+        });
+        
+        setLoading(true);
+        
+        // Use setTimeout to ensure state updates properly
+        setTimeout(() => {
+          setVisibleCount(prev => {
+            const newCount = Math.min(prev + 50, filteredNFTs.length);
+            console.log(`Increasing visible count from ${prev} to ${newCount}`);
+            return newCount;
+          });
+          setLoading(false);
+        }, 100);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [loading, visibleCount, filteredNFTs.length]);
+
+  // Update the useEffect that handles visibleNFTs to properly update when visibleCount changes
+  useEffect(() => {
+    console.log(`Updating visible NFTs. Count: ${visibleCount}, Total filtered: ${filteredNFTs.length}`);
     
     // If we should shuffle and there are no filters applied, shuffle the NFTs
     if (shouldShuffle && searchTerm === '' && Object.values(selectedFilters).every(filters => filters.length === 0)) {
       const shuffledNFTs = shuffleArray(filteredNFTs);
-      setVisibleNFTs(shuffledNFTs.slice(0, 50));
+      setVisibleNFTs(shuffledNFTs.slice(0, visibleCount));
       console.log('NFTs shuffled for display');
     } else {
       // Otherwise, show them in order
-      setVisibleNFTs(filteredNFTs.slice(0, 50));
+      setVisibleNFTs(filteredNFTs.slice(0, visibleCount));
     }
-  }, [filteredNFTs, searchTerm, selectedFilters, shouldShuffle, shuffleArray]);
+  }, [filteredNFTs, searchTerm, selectedFilters, shouldShuffle, shuffleArray, visibleCount]);
 
   // Add an effect to shuffle on page load
   useEffect(() => {
@@ -487,26 +519,6 @@ export default function Gallery() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
-
-  // Handle scroll event to load more NFTs
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop >=
-        document.documentElement.offsetHeight - 200 && 
-        !loading &&
-        visibleCount < filteredNFTs.length
-      ) {
-        console.log('Reached bottom, loading more NFTs...');
-        setLoading(true);
-        setVisibleCount(prev => Math.min(prev + 50, filteredNFTs.length));
-        setLoading(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [loading, visibleCount, filteredNFTs]);
 
   // Update the filter and search handlers to disable shuffling when filters are applied
   const handleFilterChange = useCallback((category: string, value: string) => {
@@ -776,9 +788,15 @@ export default function Gallery() {
                   <Button 
                     variant="outline" 
                     className="w-full mt-6 border-[#f27125] text-[#f27125]"
-                    onClick={() => setVisibleCount(prev => Math.min(prev + 50, filteredNFTs.length))}
+                    onClick={() => {
+                      setLoading(true);
+                      setTimeout(() => {
+                        setVisibleCount(prev => Math.min(prev + 50, filteredNFTs.length));
+                        setLoading(false);
+                      }, 100);
+                    }}
                   >
-                    Load More
+                    Load More ({visibleCount} of {filteredNFTs.length})
                   </Button>
                 )}
               </div>
