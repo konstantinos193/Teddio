@@ -21,6 +21,20 @@ const nextConfig = {
     parallelServerBuildTraces: true,
     parallelServerCompiles: true,
   },
+  scripts: [
+    {
+      src: "https://www.googletagmanager.com/gtag/js?id=G-HGN2BJ59LZ",
+      async: true,
+    },
+    {
+      innerHTML: `
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-HGN2BJ59LZ');
+      `,
+    },
+  ],
 }
 
 mergeConfig(nextConfig, userConfig)

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google"
 import type { Metadata } from "next"
 import Head from 'next/head'
 import CustomCursor from "@/components/CustomCursor"
+import GoogleAnalytics from '@/components/GoogleAnalytics'
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -47,6 +48,7 @@ export default function RootLayout({
       </Head>
       <body className={`${inter.className} bg-black`}>
         <CustomCursor />
+        <GoogleAnalytics />
         {children}
       </body>
     </html>
