@@ -3,7 +3,7 @@
 import { useState, useMemo, useCallback, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import { Search, Filter, ChevronDown, X, Download } from "lucide-react"
+import { Search, Filter, ChevronDown, X, Download, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -622,6 +622,15 @@ export default function Gallery() {
     });
   }, [allNFTs]);
 
+  // Update the getMagicEdenUrl function to use the correct format
+  const getMagicEdenUrl = useCallback((nftId: number) => {
+    // The contract address for TeddioBears on Berachain
+    const contractAddress = "0x3b51c192a38ad2f9bcc87a4910db971c283461e0";
+    
+    // Format the URL to go directly to the NFT page
+    return `https://magiceden.io/item-details/berachain/${contractAddress}/${nftId}`;
+  }, []);
+
   return (
     <div className="min-h-screen bg-black text-white">
       <BearFace3D />
@@ -880,18 +889,33 @@ export default function Gallery() {
                       }
                     </div>
                     
-                    {/* Download button */}
-                    <button 
-                      id="download-button"
-                      className="mt-4 w-full bg-black hover:bg-gray-800 text-white font-bold py-2.5 px-4 rounded-lg flex items-center justify-center transition-colors text-sm"
-                      onClick={(e) => {
-                        e.stopPropagation(); // Prevent modal from closing
-                        downloadHighResImage(selectedNFT);
-                      }}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download High Resolution Image
-                    </button>
+                    {/* Modal buttons - Updated to match Magic Eden style */}
+                    <div className="flex flex-col space-y-3 mt-4">
+                      {/* Download Image button */}
+                      <button 
+                        id="download-button"
+                        className="w-full bg-black hover:bg-gray-800 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation(); // Prevent modal from closing
+                          downloadHighResImage(selectedNFT);
+                        }}
+                      >
+                        <Download className="h-5 w-5 mr-2" />
+                        Download Image
+                      </button>
+                      
+                      {/* Magic Eden button */}
+                      <a 
+                        href={getMagicEdenUrl(selectedNFT.id)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full bg-[#E42575] hover:bg-[#c01e64] text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center transition-colors"
+                        onClick={(e) => e.stopPropagation()} // Prevent modal from closing
+                      >
+                        <ExternalLink className="h-5 w-5 mr-2" />
+                        View on Magic Eden
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
