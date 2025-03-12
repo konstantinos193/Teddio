@@ -601,6 +601,15 @@ export default function Gallery() {
     }
   }, []);
 
+  // Add this function to sort trait values by frequency (most common first)
+  const sortTraitsByFrequency = useCallback((category, values) => {
+    return [...values].sort((a, b) => {
+      const countA = allNFTs.filter(nft => nft.traits[category] === a).length;
+      const countB = allNFTs.filter(nft => nft.traits[category] === b).length;
+      return countB - countA; // Sort from most common to least common
+    });
+  }, [allNFTs]);
+
   return (
     <div className="min-h-screen bg-black text-white">
       <BearFace3D />
@@ -672,7 +681,7 @@ export default function Gallery() {
 
                         {expandedCategories[category] && (
                           <div className="space-y-1.5">
-                            {values.map((value) => (
+                            {sortTraitsByFrequency(category, values).map((value) => (
                               <div key={value} className="flex items-center">
                                 <Checkbox
                                   id={`${category}-${value}`}
@@ -905,7 +914,7 @@ export default function Gallery() {
 
                           {expandedCategories[category] && (
                             <div className="space-y-2">
-                              {values.map((value) => (
+                              {sortTraitsByFrequency(category, values).map((value) => (
                                 <div key={value} className="flex items-center">
                                   <Checkbox
                                     id={`float-${category}-${value}`}
