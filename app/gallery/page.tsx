@@ -729,7 +729,7 @@ export default function Gallery() {
                 </div>
               </div>
 
-              {/* NFT Grid - Remove the filter banner */}
+              {/* NFT Grid - Update to show 4 columns */}
               <div className="lg:col-span-4">
                 {filteredNFTs.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-64 bg-gray-900/30 rounded-xl">
@@ -739,7 +739,7 @@ export default function Gallery() {
                     </Button>
                   </div>
                 ) : (
-                  <motion.div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3" layout>
+                  <motion.div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" layout>
                     <AnimatePresence>
                       {visibleNFTs.map((nft) => (
                         <motion.div
