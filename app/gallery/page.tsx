@@ -523,15 +523,33 @@ export default function Gallery() {
   // Update the filter and search handlers to disable shuffling when filters are applied
   const handleFilterChange = useCallback((category: string, value: string) => {
     setShouldShuffle(false); // Disable shuffling when filters are applied
-    setSelectedFilters((prev) => ({
-      ...prev,
-      [category]: prev[category] ? 
-        (prev[category].includes(value)
-        ? prev[category].filter((item) => item !== value)
-          : [...prev[category], value])
-        : [value]
-    }));
-  }, []);
+    setSelectedFilters((prev) => {
+      const newFilters = { ...prev };
+      
+      // If the value is already selected, remove it
+      if (newFilters[category]?.includes(value)) {
+        newFilters[category] = newFilters[category].filter(item => item !== value);
+      } else {
+        // Otherwise add it
+        newFilters[category] = [...(newFilters[category] || []), value];
+      }
+      
+      // Check if all filters are now empty after this change
+      const allFiltersEmpty = Object.values(newFilters).every(filters => filters.length === 0);
+      
+      // If all filters are empty and search is empty, enable shuffling
+      if (allFiltersEmpty && searchTerm === '') {
+        setShouldShuffle(true);
+        // Schedule a shuffle on the next render
+        setTimeout(() => {
+          const shuffled = shuffleArray(allNFTsWithRarity);
+          setVisibleNFTs(shuffled.slice(0, visibleCount));
+        }, 0);
+      }
+      
+      return newFilters;
+    });
+  }, [searchTerm, allNFTsWithRarity, shuffleArray, visibleCount]);
 
   const toggleCategory = (category) => {
     setExpandedCategories((prev) => ({
@@ -540,6 +558,7 @@ export default function Gallery() {
     }))
   }
 
+  // Update the clearFilters function to always shuffle NFTs when clearing filters
   const clearFilters = useCallback(() => {
     // Check if there are any active filters before doing anything
     const hasActiveFilters = searchTerm !== '' || 
@@ -547,27 +566,42 @@ export default function Gallery() {
     
     // Only perform actions if there are active filters
     if (hasActiveFilters) {
-      setShouldShuffle(true); // Re-enable shuffling when filters are cleared
+      // Reset filters
       setSelectedFilters(Object.keys(traitCategories).reduce((acc, category) => {
         acc[category] = [];
         return acc;
       }, {} as Record<string, string[]>));
       setSearchTerm("");
+      
       // Reset visible count to show first batch
       setVisibleCount(50);
+      
+      // Enable shuffling and immediately shuffle the NFTs
+      setShouldShuffle(true);
+      
+      // Force an immediate shuffle by directly updating visibleNFTs
+      const shuffled = shuffleArray(allNFTsWithRarity);
+      setVisibleNFTs(shuffled.slice(0, 50));
     }
-  }, [searchTerm, selectedFilters, traitCategories]);
-
-  useEffect(() => {
-    console.log('Loaded NFTs updated:', visibleNFTs);
-  }, [visibleNFTs]);
+  }, [searchTerm, selectedFilters, traitCategories, shuffleArray, allNFTsWithRarity]);
 
   // Update the search input to clear visible count when typing
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const newSearchTerm = e.target.value;
     setShouldShuffle(false); // Disable shuffling when searching
-    setSearchTerm(e.target.value);
+    setSearchTerm(newSearchTerm);
     setVisibleCount(50); // Reset visible count when searching
-  }, []);
+    
+    // If search is cleared and no filters are active, enable shuffling
+    if (newSearchTerm === '' && Object.values(selectedFilters).every(filters => filters.length === 0)) {
+      setShouldShuffle(true);
+      // Schedule a shuffle on the next render
+      setTimeout(() => {
+        const shuffled = shuffleArray(allNFTsWithRarity);
+        setVisibleNFTs(shuffled.slice(0, 50));
+      }, 0);
+    }
+  }, [selectedFilters, allNFTsWithRarity, shuffleArray]);
 
   // Add a function to close the modal
   const closeModal = () => setSelectedNFT(null);
@@ -665,114 +699,116 @@ export default function Gallery() {
           <>
             <div className="flex items-center justify-between mb-6">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-[#f27125]">
-            <span className="relative">
-              Teddio Gallery
-              <span className="absolute -top-1 -right-6 text-xs bg-[#f27125] text-black px-2 py-0.5 rounded-full">
-                {filteredNFTs.length}
-              </span>
-            </span>
-          </h1>
+                <span className="relative">
+                  Teddio Gallery
+                  <span className="absolute -top-1 -right-6 text-xs bg-[#f27125] text-black px-2 py-0.5 rounded-full">
+                    {filteredNFTs.length}
+                  </span>
+                </span>
+              </h1>
               <Button variant="ghost" className="text-gray-400 hover:text-white text-sm" onClick={clearFilters}>
-            Clear Filters
-          </Button>
-        </div>
+                Clear Filters
+              </Button>
+            </div>
 
             {/* Search Bar - Update placeholder to be more descriptive */}
             <div className="relative mb-6">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            type="text"
+              <Input
+                type="text"
                 placeholder="Search by name (e.g., Teddio #2) or trait..."
-            value={searchTerm}
+                value={searchTerm}
                 onChange={handleSearchChange}
                 className="w-full bg-gray-900/50 border-gray-800 focus:border-[#f27125] pl-9 pr-4 py-2 rounded-lg text-white text-sm"
-          />
-        </div>
+              />
+            </div>
 
-        {/* Desktop Layout */}
+            {/* Desktop Layout */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Filters - Desktop */}
+              {/* Filters - Desktop */}
               <div className="hidden lg:block lg:col-span-1">
                 <div className="bg-gray-900/50 backdrop-blur-md rounded-lg p-4 border border-gray-800 overflow-y-auto max-h-[calc(100vh-150px)] sticky top-20">
-                  <h2 className="text-xl font-semibold mb-4 text-[#f27125]">Traits</h2>
+                  <div className="mb-4">
+                    <h2 className="text-xl font-semibold text-[#f27125]">Traits</h2>
+                  </div>
                   <div className="space-y-4 overflow-y-auto">
-              {Object.entries(traitCategories).map(([category, values]) => (
+                    {Object.entries(traitCategories).map(([category, values]) => (
                       <div key={category} className="mb-4 border-b border-gray-800 pb-3 last:border-0">
-                  <button
+                        <button
                           className="flex items-center justify-between w-full text-left mb-2"
-                    onClick={() => toggleCategory(category)}
-                  >
+                          onClick={() => toggleCategory(category)}
+                        >
                           <h3 className="text-base font-semibold capitalize text-white">{category}</h3>
-                    <ChevronDown
+                          <ChevronDown
                             className={`h-4 w-4 transition-transform ${expandedCategories[category] ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
-                  {expandedCategories[category] && (
-                          <div className="space-y-1.5">
-                            {sortTraitsByFrequency(category, values).map((value) => (
-                        <div key={value} className="flex items-center">
-                          <Checkbox
-                            id={`${category}-${value}`}
-                                  checked={selectedFilters[category]?.includes(value) || false}
-                            onCheckedChange={() => handleFilterChange(category, value)}
-                                  className="border-[#f27125] data-[state=checked]:bg-[#f27125] data-[state=checked]:text-black h-3.5 w-3.5"
                           />
-                          <label
-                            htmlFor={`${category}-${value}`}
+                        </button>
+
+                        {expandedCategories[category] && (
+                          <div className="space-y-2">
+                            {sortTraitsByFrequency(category, values).map((value) => (
+                              <div key={value} className="flex items-center">
+                                <Checkbox
+                                  id={`${category}-${value}`}
+                                  checked={selectedFilters[category]?.includes(value) || false}
+                                  onCheckedChange={() => handleFilterChange(category, value)}
+                                  className="border-[#f27125] data-[state=checked]:bg-[#f27125] data-[state=checked]:text-black h-3.5 w-3.5"
+                                />
+                                <label
+                                  htmlFor={`${category}-${value}`}
                                   className="ml-2 text-gray-300 hover:text-white cursor-pointer text-sm"
-                          >
-                            {value}
+                                >
+                                  {value}
                                   <span className="ml-1.5 text-xs text-gray-500">
                                     ({allNFTs.filter((nft) => nft.traits[category] === value).length})
-                            </span>
-                          </label>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
+                                  </span>
+                                </label>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-            </div>
-          </div>
+                </div>
+              </div>
 
               {/* NFT Grid - Update to show 4 columns */}
               <div className="lg:col-span-4">
-            {filteredNFTs.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-64 bg-gray-900/30 rounded-xl">
-                <p className="text-xl text-gray-400 mb-4">No Teddios found</p>
-                <Button variant="outline" className="border-[#f27125] text-[#f27125]" onClick={clearFilters}>
-                  Clear Filters
-                </Button>
-              </div>
-            ) : (
+                {filteredNFTs.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-64 bg-gray-900/30 rounded-xl">
+                    <p className="text-xl text-gray-400 mb-4">No Teddios found</p>
+                    <Button variant="outline" className="border-[#f27125] text-[#f27125]" onClick={clearFilters}>
+                      Clear Filters
+                    </Button>
+                  </div>
+                ) : (
                   <motion.div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" layout>
-                <AnimatePresence>
+                    <AnimatePresence>
                       {visibleNFTs.map((nft) => (
-                    <motion.div
-                      key={nft.id}
-                      layout
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.3 }}
+                        <motion.div
+                          key={nft.id}
+                          layout
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.9 }}
+                          transition={{ duration: 0.3 }}
                           className="group relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-lg overflow-hidden cursor-pointer border border-gray-800 hover:border-[#f27125]/50 transition-all duration-300"
-                      onClick={() => setSelectedNFT(nft)}
-                    >
-                      <div className="aspect-square overflow-hidden">
-                        <img
-                          src={nft.image || "/placeholder.svg"}
-                          alt={nft.name}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          onClick={() => setSelectedNFT(nft)}
+                        >
+                          <div className="aspect-square overflow-hidden">
+                            <img
+                              src={nft.image || "/placeholder.svg"}
+                              alt={nft.name}
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                               loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      </div>
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          </div>
 
                           <div className="p-2">
                             <h3 className="text-xs sm:text-sm font-bold text-[#f27125] truncate">{nft.name}</h3>
-                      </div>
+                          </div>
 
                           {/* Keep the rarity badge */}
                           <div
@@ -786,12 +822,12 @@ export default function Gallery() {
                             }`}
                           >
                             {nft.rarity}
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </motion.div>
-            )}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  </motion.div>
+                )}
                 
                 {/* Loading indicator */}
                 {loading && (
@@ -816,8 +852,8 @@ export default function Gallery() {
                     Load More ({visibleCount} of {filteredNFTs.length})
                   </Button>
                 )}
-          </div>
-        </div>
+              </div>
+            </div>
 
             {/* Modal - Improved for mobile */}
             {selectedNFT && (
@@ -942,7 +978,7 @@ export default function Gallery() {
                       <Filter className="h-7 w-7" />
                       <span className="text-xs font-bold mt-1">FILTER</span>
                     </div>
-              </Button>
+                  </Button>
                 </SheetTrigger>
                 <SheetContent side="left" className="w-[85%] sm:w-[350px] bg-gray-900 border-r border-gray-800 p-0">
                   <SheetHeader className="p-4 border-b border-gray-800 bg-[#f27125]">
@@ -950,52 +986,52 @@ export default function Gallery() {
                   </SheetHeader>
                   <div className="p-4 overflow-y-auto h-[calc(100vh-80px)]">
                     <div className="space-y-4">
-            {Object.entries(traitCategories).map(([category, values]) => (
+                      {Object.entries(traitCategories).map(([category, values]) => (
                         <div key={category} className="mb-4 border-b border-gray-800 pb-3 last:border-0">
-                <button
+                          <button
                             className="flex items-center justify-between w-full text-left mb-2"
-                  onClick={() => toggleCategory(category)}
-                >
+                            onClick={() => toggleCategory(category)}
+                          >
                             <h3 className="text-base font-semibold capitalize text-white">{category}</h3>
-                  <ChevronDown
+                            <ChevronDown
                               className={`h-4 w-4 transition-transform ${expandedCategories[category] ? "rotate-180" : ""}`}
-                  />
-                </button>
+                            />
+                          </button>
 
-                {expandedCategories[category] && (
-                  <div className="space-y-2">
+                          {expandedCategories[category] && (
+                            <div className="space-y-2">
                               {sortTraitsByFrequency(category, values).map((value) => (
-                      <div key={value} className="flex items-center">
-                        <Checkbox
+                                <div key={value} className="flex items-center">
+                                  <Checkbox
                                     id={`float-${category}-${value}`}
                                     checked={selectedFilters[category]?.includes(value) || false}
-                          onCheckedChange={() => handleFilterChange(category, value)}
-                          className="border-[#f27125] data-[state=checked]:bg-[#f27125] data-[state=checked]:text-black"
-                        />
-                        <label
+                                    onCheckedChange={() => handleFilterChange(category, value)}
+                                    className="border-[#f27125] data-[state=checked]:bg-[#f27125] data-[state=checked]:text-black"
+                                  />
+                                  <label
                                     htmlFor={`float-${category}-${value}`}
-                          className="ml-2 text-gray-300 hover:text-white cursor-pointer"
-                        >
-                          {value}
-                          <span className="ml-2 text-xs text-gray-500">
+                                    className="ml-2 text-gray-300 hover:text-white cursor-pointer"
+                                  >
+                                    {value}
+                                    <span className="ml-2 text-xs text-gray-500">
                                       ({allNFTs.filter((nft) => nft.traits[category] === value).length})
-                          </span>
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-            <Button
+                                    </span>
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <Button
                       variant="default" 
                       className="w-full mt-4 bg-[#f27125] text-black hover:bg-[#f27125]/90"
                       onClick={clearFilters}
-            >
+                    >
                       Clear All Filters
-            </Button>
-          </div>
+                    </Button>
+                  </div>
                 </SheetContent>
               </Sheet>
             </div>
